@@ -172,7 +172,8 @@ class _MyHomePageState extends State<MyHomePage> {
           transactions: _userTransactions, deleteTx: _deleteTransaction),
     );
 
-    final pageBody = SingleChildScrollView(
+    final pageBody = SafeArea(
+        child: SingleChildScrollView(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -212,7 +213,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 : txListWidgets
         ],
       ),
-    );
+    ));
 
     return SafeArea(
       child: Platform.isIOS
