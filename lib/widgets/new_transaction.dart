@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 
 class NewTransaction extends StatefulWidget {
@@ -96,10 +99,15 @@ class _NewTransactionState extends State<NewTransaction> {
                             : DateFormat.yMd().format(_selectDate as DateTime),
                       ),
                     ),
-                    TextButton(
-                      onPressed: () => _presentDatePicker(),
-                      child: const Text('Chose date'),
-                    )
+                    Platform.isIOS
+                        ? CupertinoButton(
+                            onPressed: () => _presentDatePicker(),
+                            child: const Text('Chose date'),
+                          )
+                        : TextButton(
+                            onPressed: () => _presentDatePicker(),
+                            child: const Text('Chose date'),
+                          )
                   ],
                 ),
               ),
