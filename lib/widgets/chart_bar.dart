@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 class ChartBar extends StatelessWidget {
-  const ChartBar(
-      {Key? key,
-      required this.label,
-      required this.spendingAmount,
-      required this.spendingPctOfTotal})
-      : super(key: key);
+  const ChartBar({
+    Key? key,
+    required this.label,
+    required this.spendingAmount,
+    required this.spendingPctOfTotal,
+  }) : super(key: key);
 
   final String label;
 
@@ -28,11 +28,14 @@ class ChartBar extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: constraint.maxHeight * 0.05),
+          SizedBox(
+            height: constraint.maxHeight * 0.05,
+          ),
           SizedBox(
             height: constraint.maxHeight * 0.6,
             width: 10,
             child: Stack(
+              alignment: AlignmentDirectional.bottomEnd,
               children: [
                 Container(
                   decoration: BoxDecoration(
@@ -57,7 +60,9 @@ class ChartBar extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: constraint.maxHeight * 0.05),
+          SizedBox(
+            height: constraint.maxHeight * 0.05,
+          ),
           SizedBox(
             height: constraint.maxHeight * 0.15,
             child: FittedBox(

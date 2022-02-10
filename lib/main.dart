@@ -50,7 +50,7 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   final List<Transaction> _userTransactions = [];
 
   List<Transaction> get _recentTransactions {
@@ -60,6 +60,25 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   bool _showChart = false;
+
+  @override
+  void initState() {
+    WidgetsBinding.instance!.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print(state);
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance!.removeObserver(this);
+    super.dispose();
+  }
+
   void _addNewTransactions({
     required String title,
     required double amount,
@@ -93,29 +112,54 @@ class _MyHomePageState extends State<MyHomePage> {
   void _deleteTransaction(String id) {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Delete !'),
-        content: const Text('Do you want to delete this transaction?'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context, 'Cancel');
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context, 'OK');
-              setState(() {
-                _userTransactions.removeWhere((tx) {
-                  return tx.id == id;
-                });
-              });
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+      builder: (BuildContext context) => Platform.isIOS
+          ? CupertinoAlertDialog(
+              title: const Text('Alert'),
+              content: const Text('Proceed with destructive action?'),
+              actions: <CupertinoDialogAction>[
+                CupertinoDialogAction(
+                  child: const Text('No'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                CupertinoDialogAction(
+                    child: const Text('Yes'),
+                    isDestructiveAction: true,
+                    onPressed: () {
+                      setState(
+                        () {
+                          _userTransactions.removeWhere((tx) {
+                            return tx.id == id;
+                          });
+                        },
+                      );
+                    }),
+              ],
+            )
+          : AlertDialog(
+              title: const Text('Delete !'),
+              content: const Text('Do you want to delete this transaction?'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context, 'Cancel');
+                  },
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context, 'OK');
+                    setState(() {
+                      _userTransactions.removeWhere((tx) {
+                        return tx.id == id;
+                      });
+                    });
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
     );
 
     // setState(() {
@@ -178,39 +222,18 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           if (isShowLandscape)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Show Chart',
-                    style: Theme.of(context).textTheme.headline6),
-                Switch.adaptive(
-                    value: _showChart,
-                    onChanged: (value) {
-                      setState(() {
-                        _showChart = value;
-                      });
-                    }),
-              ],
+            ..._buildLandscapeContent(
+              context,
+              mediaQuery,
+              appBar,
+              txListWidgets,
             ),
           if (!isShowLandscape)
-            SizedBox(
-              height: (mediaQuery.size.height -
-                      appBar.preferredSize.height -
-                      mediaQuery.padding.top) *
-                  0.3,
-              child: Chart(recentTransactions: _recentTransactions),
+            ..._buildPortraintContent(
+              mediaQuery,
+              appBar,
+              txListWidgets,
             ),
-          if (!isShowLandscape) txListWidgets,
-          if (isShowLandscape)
-            _showChart
-                ? SizedBox(
-                    height: (mediaQuery.size.height -
-                            appBar.preferredSize.height -
-                            mediaQuery.padding.top) *
-                        0.7,
-                    child: Chart(recentTransactions: _recentTransactions),
-                  )
-                : txListWidgets
         ],
       ),
     ));
@@ -232,5 +255,58 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
     );
+  }
+
+  List<Widget> _buildPortraintContent(
+    MediaQueryData mediaQuery,
+    AppBar appBar,
+    Widget txListWidgets,
+  ) {
+    return [
+      SizedBox(
+        height: (mediaQuery.size.height -
+                appBar.preferredSize.height -
+                mediaQuery.padding.top) *
+            0.3,
+        child: Chart(
+          recentTransactions: _recentTransactions,
+        ),
+      ),
+      txListWidgets
+    ];
+  }
+
+  List<Widget> _buildLandscapeContent(
+    BuildContext context,
+    MediaQueryData mediaQuery,
+    AppBar appBar,
+    Widget txListWidgets,
+  ) {
+    return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('Show Chart', style: Theme.of(context).textTheme.headline6),
+          Switch.adaptive(
+              value: _showChart,
+              onChanged: (value) {
+                setState(() {
+                  _showChart = value;
+                });
+              }),
+        ],
+      ),
+      _showChart
+          ? SizedBox(
+              height: (mediaQuery.size.height -
+                      appBar.preferredSize.height -
+                      mediaQuery.padding.top) *
+                  0.7,
+              child: Chart(
+                recentTransactions: _recentTransactions,
+              ),
+            )
+          : txListWidgets
+    ];
   }
 }
